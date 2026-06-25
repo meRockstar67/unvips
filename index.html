@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Суд над Випами</title>
+    <style>
+        /* Стили для всего сайта */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: #0b0b0d; /* Глубокий темный цвет */
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* ЗАСТАВКА В СТИЛЕ GTA 6 */
+        .intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #050505 0%, #1a0826 100%); /* Темный градиент */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        /* Эффект, когда мы прокрутили вниз */
+        body.scrolled .intro-screen {
+            opacity: 0;
+            transform: scale(1.1); /* Легкое увеличение при исчезновении */
+            pointer-events: none; /* Пропускает клики после исчезновения */
+        }
+
+        .intro-logo {
+            font-size: 4rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            color: #fff;
+            text-shadow: 0 0 20px #ff007f, 0 0 40px #00ffff; /* Неоновое свечение */
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .intro-hint {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #7ef2f2;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #00ffff;
+            animation: pulse 1.5s infinite;
+            text-align: center;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+        100% { opacity: 0.5; }
+        }
+
+        /* ОСНОВНОЙ КОНТЕНТ */
+        .main-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1s ease 0.3s, transform 1s ease 0.3s;
+        }
+
+        body.scrolled .main-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .site-header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-top: 40px;
+        }
+
+        .site-header h1 {
+            font-size: 2.5rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+           text-align: center;
+        }
+
+        /* КАРТОЧКИ ЛЮДЕЙ */
+        .person-card {
+            background: #141419;
+            border: 1px solid #23232a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .person-card:hover {
+            transform: translateY(-5px);
+            border-color: #ff007f;
+        }
+
+        /* Ссылка-обертка для медиа-блока */
+        .person-media-link {
+            display: block;
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+            text-decoration: none;
+        }
+
+        /* Медиа-блок */
+        .person-media {
+            width: 100%;
+            height: 250px;
+            background: #23232a;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.2s ease;
+        }
+
+        .person-media-link:hover .person-media {
+            opacity: 0.85;
+        }
+
+        .person-media img, .person-media video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Заглушка */
+        .media-placeholder {
+            color: #555;
+            font-weight: bold;
+        }
+
+        /* Инфо-блок */
+        .person-info {
+            flex: 1.5;
+            min-width: 0;
+        }
+
+        .person-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .person-name {
+            font-size: 1.8rem;
+            color: #ff007f;
+        }
+
+        /* ЗВЕЗДЫ РОЗЫСКА (АКТИВНЫЕ) */
+        .person-stars {
+            color: #ffcc00; 
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
+            user-select: none;
+        }
+
+        /* СЕРЫЕ ЗВЕЗДЫ (ПОТУХШИЕ) */
+        .person-stars .grey-star {
+            color: #3a3a44;
+            text-shadow: none;
+        }
+
+        /* ПОЛОВИНА ЗВЕЗДЫ */
+        .person-stars .half-star {
+            position: relative;
+            display: inline-block;
+            color: #3a3a44; /* Задний фон — серая звезда */
+            text-shadow: none;
+        }
+
+        .person-stars .half-star::before {
+            content: "★";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50%; /* Закрашиваем ровно половину */
+            overflow: hidden;
+            color: #ffcc00;
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.7);
+        }
+
+        .person-role {
+            font-size: 0.9rem;
+            color: #00ffff;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        /* Стилизация текстовой ссылки */
+        .person-role a {
+            color: #00ffff;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(0, 255, 255, 0.4);
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .person-role a:hover {
+            color: #fff;
+            border-bottom-color: #fff;
+        }
+
+        .person-desc {
+            color: #cccccc;
+            line-height: 1.6;
+        }
+
+        /* Адаптив */
+        @media (max-width: 768px) {
+            .person-card {
+                flex-direction: column;
+            }
+            .person-media-link {
+                max-width: 100%;
+                width: 100%;
+            }
+            .intro-logo {
+                font-size: 2.5rem;
+            }
+            .intro-hint {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="intro-screen">
+        <div class="intro-logo">СУД НАД ВИПАМИ</div>
+        <div class="intro-hint">meowh0cki МОДЕРАТОРС ПРОДАКШН</div>
+    </div>
+
+    <div class="main-content">
+        <header class="site-header">
+            <h1>Список Участников</h1>
+            <p>Здесь находятся те, кому предоставлен ранний доступ GTA: UnVips City</p>
+        </header>
+
+        <main>
+            <!-- 1. alec_seich -->
+            <div class="person-card">
+                <a href="https://media.myshows.me/shows/760/7/ee/7ee99535389b46103e595225968b152c.jpg" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/gjLh4JCY/photo-2026-06-25-19-19-29.jpg" alt="alec_seich">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">alec_seich</h2>
+                        <div class="person-stars">★★★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/AWZo6q3" target="_blank">где деньги</a>
+                    </div>
+                    <p class="person-desc">ренахоки.кабан.20к.фурри.подписчица.скам.20к.кабан.</p>
+                </div>
+            </div>
+
+            <!-- 2. amnyasha -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/amnyasha?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/bNJ6DPs8/00-4x.png" alt="amnyasha">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">amnyasha</h2>
+                        <div class="person-stars">★★★★★★<span class="half-star">★</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/oLb8SMF" target="_blank">амням ебался</a>
+                    </div>
+                    <p class="person-desc">Хороший актив, стабильные посещения стримов, респект кароче +есть в приватке и чета пишет</p>
+                </div>
+            </div>
+
+            <!-- 3. anaromanoffl -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/anaromanoffl?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://www.film.ru/sites/default/files/images/MV5BMjAxMzcyMTcyNF5BMl5BanBnXkFtZTcwMjkwOTY3Nw@@__V1_SX1366_CR0,0,1366,910_AL_.jpg" alt="anaromanoffl">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">anaromanoffl</h2>
+                        <div class="person-stars">★★★★★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/nofm8YU" target="_blank">анар абдуллаев</a>
+                    </div>
+                    <p class="person-desc">Олд вроде харашо активит стримы посещает все найс</p>
+                </div>
+            </div>
+
+           <!-- 4. antony_popkin -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/antony_popkin?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/mZ84WT05/photo-2026-06-25-02-33-57.jpg" alt="antony_popkin">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">antony_popkin</h2>
+                        <div class="person-stars">★★★★<span class="grey-star">★★</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/McX2tY4" target="_blank">любимый чаттерс милшера 42</a>
+                    </div>
+                    <p class="person-desc">Хааххаха очень тупой и смешной ник оставляем</p>
+                </div>
+            </div>
+
+<!-- 5. bananchik1 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/bananchik1?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/7LYcVzLh/photo-2026-06-25-02-38-05.jpg" alt="bananchik1">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">bananchik1</h2>
+                        <div class="person-stars">🍌🍌🍌🍌🍌</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/A7Xly0N" target="_blank">грузи н LOL </a>
+                    </div>
+                    <p class="person-desc">Сегодня в первые попробовал свежих мидий и самое главное устриц!!!!!! 
+Боже это так вкусно
+Я буду одним из тех кто говорит «то вы просто нормальные не пробовали» 
+Они такие нежные, свежие, с морской водой и лимончиком мммм
+Так круто питаться морскими гадами в портовом городе 
+Где все свежее и буквально только выловленное 
+А мидии? Это вообще смак 
+Еще и в соусе каком-то сырном нормандском
+Еда прям 10/10</p>
+                </div>
+            </div>
+
+            <!-- 6. catherine7137 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/catherine7137?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://files.oprf.ru/storage//images/members/4QofayezDHSCGADQ.jpg" alt="catherine7137">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">catherine7137</h2>
+                        <div class="person-stars">½<span class="grey-star">★★★★★</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/ouE6bMF" target="_blank">катерина циферки</a>
+                    </div>
+                    <p class="person-desc">Типа мизулина хихи поняли завозик от модерации ряльно (активу очень хуево)</p>
+                </div>
+            </div>
+
+            <!-- 7. ch0piiii -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/ch0piiii?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/gJKxPfWK/photo-2026-06-25-03-04-58.jpg" alt="ch0piiii">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">ch0piiii</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/ouE6bMF" target="_blank">типа чопер поняли прикол</a>
+                    </div>
+                    <p class="person-desc">Вы осеменили ch0piiii.</p>
+                </div>
+            </div>
+
+            <!-- 8. dilyuk_rangvindr -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/dilyuk_rangvindr?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/9fCVjzQ5/photo-2026-06-25-03-13-08.jpg" alt="dilyuk_rangvindr">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">dilyuk_rangvindr</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/qBSy0Y3" target="_blank">картинка слева очень страшная кто ее поставил блять</a>
+                    </div>
+                    <p class="person-desc">Дилюк Рагнвиндр — легендарный 5⭐️ Пиро персонаж с двуручным мечом из Genshin Impact</p>
+                </div>
+            </div>
+
+            <!-- 9. egortsai -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/egortsai?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/NG3jzsm0/photo-2026-06-25-03-18-01.jpg" alt="egortsai">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">egortsai</h2>
+                        <div class="person-stars">я домой</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/1wemsWi" target="_blank">СЛУШАТЬ НОВЫЙ АЛЬБОМ</a>
+                    </div>
+                    <p class="person-desc">«Пес с нами» — это американский семейный комедийный фильм 2007 года, также известный как «Суперпёс». Это юмористическая история о говорящей собаке, которая приобретает сверхспособности</p>
+                </div>
+            </div>
+
+            <!-- 10. frau_yuna_finch -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/frau_yuna_finch?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/MZjHWMY8/photo-2026-06-25-02-02-47.jpg" alt="frau_yuna_finch">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">frau_yuna_finch</h2>
+                        <div class="person-stars">★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/nCA0GLK" target="_blank">юна.лазертаг.камера.</a>
+                    </div>
+                    <p class="person-desc">твой парень и другой прерень а ты смотрешь и короче</p>
+                </div>
+            </div>
+
+            <!-- 11. gan_islam -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/gan_islam?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/4dFmdpY0/photo-2026-06-25-03-34-46.jpg" alt="gan_islam">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">gan_islam</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/AZB6UMT" target="_blank">геге</a>
+                    </div>
+                    <p class="person-desc">спасибо за донат</p>
+                </div>
+            </div>
+
+            <!-- 12. hellhyoo -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/hellhyoo?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/1zmtrv6F/photo-2026-06-25-03-37-55.jpg" alt="hellhyoo">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">hellhyoo</h2>
+                        <div class="person-stars">🌸🌸🌸🌸🌸🌸</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/fihP77n" target="_blank">СЕРЕГА ЯПОНСКИЙ</a>
+                    </div>
+                    <p class="person-desc">охаёшечки даттебаёшечки</p>
+                </div>
+            </div>
+
+            <!-- 13. kaepshkaa -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/kaepshkaa?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/8PbYWszH/51003639-0e0e-4b3e-8507-70732b1a271c.jpg" alt="kaepshkaa">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">kaepshkaa</h2>
+                        <div class="person-stars">
+                            <span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★</span><span style="color: #888888;">☆☆</span>
+                        </div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/sQJUoRl" target="_blank">не шарю</a>
+                    </div>
+                    <p class="person-desc">Посещения +- норм, но актив оставляет желать лучшего</p>
+                </div>
+            </div>
+
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/kinophlenka?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://png.klev.club/uploads/posts/2024-03/png-klev-club-p-kinoplenka-png-26.png" alt="kinophlenka">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">kinophlenka</h2>
+                        <div class="person-stars" style="display: inline-flex; align-items: center;">
+                            <span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★</span>
+                            <span style="position: relative; display: inline-block; color: #888888;">
+                                <span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span>★
+                            </span>
+                            <span style="color: #888888;">☆</span>
+                        </div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/8JgZwAD" target="_blank">КИНО</a>
+                    </div>
+                    <p class="person-desc">притворимся что в прошлых 100 судах мы ни разу не вставляли картинку кинопленки к кинопленке</p>
+                </div>
+            </div>
+
+            <!-- 15. kokomi_sang_ -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/kokomi_sang_?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/SsJvxcPw/photo-2026-06-25-03-44-27.jpg" alt="kokomi_sang_">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">kokomi_sang_</h2>
+                        <div class="person-stars">
+                            <span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★</span><span style="color: #888888;">☆☆☆☆</span>
+                        </div>
+                    </div>
+                    <div class="person-role">
+                         <a href="https://eblo.id/r0mgAYO" target="_blank">КОКО</a>
+                    </div>
+                    <p class="person-desc">актив кнш норм, но очень смущают однотипные сообщения (советую нажать на картинку и глянуть меслог)</p>
+                </div>
+            </div>
+
+            <!-- 16. kurisu -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/kurisu?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/ZKRxtJGS/channels4-profile.jpg" alt="kurisu">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">kurisu</h2>
+                        <div class="person-stars">🦊🦊🦊🦊🦊</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/AYtDUUs" target="_blank">В.И.Т.У.Б.Е.Р.Ш.А</a>
+                    </div>
+                    <p class="person-desc">курису типа из врат штейна хихих</p>
+                </div>
+            </div>
+
+            <!-- 17. kymixo_8 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/kymixo_8?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.ytimg.com/vi/9t8gxgTAEE8/sddefault.jpg" alt="kymixo_8">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">kymixo_8</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/fgGjV3p" target="_blank">респеты</a>
+                    </div>
+                        <p class="person-desc">Спасибо хорошо</p>
+                </div>
+            </div>
+
+            <!-- 18. l1m0n_2 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/l1m0n_2?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://img.tsn.ua/cached/292/tsn-135859377404ec64163c97d964721c31/thumbs/1200x630/52/3e/dde941015b89c568f3fa5b1b2b0e3e52.jpeg" alt="l1m0n_2">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">l1m0n_2</h2>
+                        <div class="person-stars">★★★★<span class="grey-star">★★★</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/MCYHMEu" target="_blank">тупа лимон</a>
+                    </div>
+                    <p class="person-desc">На стримы ходит стабильно но за стрим почти ничего не пишет, думаю випка не оч нужна.</p>
+                </div>
+            </div>
+
+            <!-- 19. lansmansion -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/lansmansion?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Silz_daim2.jpg/250px-Silz_daim2.jpg" alt="lansmansion">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">lansmansion</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://www.youtube.com/watch?v=IRzB8QyRrw8" target="_blank">ДО СЛёЗ</a>
+                    </div>
+                    <p class="person-desc">Лань — это изящный грациозный олень средних размеров. Она заметно меньше и легче благородного оленя, но крупнее косули</p>
+                </div>
+            </div>
+
+            <!-- 20. losyash_lesya -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/losyash_lesya?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.ytimg.com/vi/5JiRxH__bKc/maxresdefault.jpg" alt="losyash_lesya">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">losyash_lesya</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/226kVwO" target="_blank">а че не бараш🤣🤣🤣</a>
+                    </div>
+                     <p class="person-desc">АНМОД КРАБОЕДА ЕСЛИ НИХУЯ НЕ СМЕШНО</p>
+                </div>
+            </div>
+
+            <!-- 21. lumine149 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/lumine149?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/6Q2YnBW6/b8c94aedcdcc47e11ccd3860f6d713e0-3208563113195252950.webp" alt="lumine149">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">lumine149</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                         <a href="https://eblo.id/x2T4eer" target="_blank">путешественница</a>
+                    </div>
+                    <p class="person-desc">эм... вообще-то канон гг итер.</p>
+                </div>
+            </div>
+
+            <!-- 22. magickat1 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/magickat1?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/vTkm173B/photo-2026-06-25-12-40-43.jpg" alt="magickat1">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">magickat1</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/A5kAQpv" target="_blank">РАБОТНИК ОЗОНА</a>
+                    </div>
+                    <p class="person-desc">Кот-фокусник (ориг. Magic Kat) — казино, расположенное на территории Пентаграмм Сити и впервые показанное в эпизоде «Кричащий дождь».</p>
+                </div>
+            </div>
+
+            <!-- 23. mellsher -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/mellsher?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/hjxnyF01/image.png" alt="mellsher">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">И ЕЩЁ 1 ИСПОЛНИТЕЛЬ</h2>
+                        <div class="person-stars">😈😈😈</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/iCrLQP0" target="_blank">Статус не указан</a>
+                    </div>
+                    <p class="person-desc">[Дроп: MellSher]
+А-а-а, а-а-а-а-а-а, а-а</p>
+                </div>
+            </div>
+
+            <!-- 24. meow_rituzzzz -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/meow_rituzzzz?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/gctCBxWp/Gemini-Generated-Image-u8qlccu8qlccu8ql.png" alt="meow_rituzzzz">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">meow_rituzzzz</h2>
+                        <div class="person-stars">
+                            <span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span><span style="color: #888888;">☆☆☆☆☆☆</span>
+                        </div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/ClzG9z2" target="_blank">ЭТА КТО НАХУЙ</a>
+                    </div>
+                    <p class="person-desc">думаю ку в чат можно писать и без випки</p>
+                </div>
+            </div>
+
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/meow_xao?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://24tv.ua/resources/photos/news/202104/1587989.jpg?v=1661263815000&w=1300&h=730&fit=cover&output=webp&q=90" alt="meow_xao">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">meow_xao</h2>
+                        <div class="person-stars" style="display: inline-flex; align-items: center;">
+                            <span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★</span>
+                            <span style="position: relative; display: inline-block; color: #888888;">
+                                <span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span>★
+                            </span>
+                            <span style="color: #888888;">☆</span>
+                        </div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/1se6wgS" target="_blank">Купить телефон</a>
+                    </div>
+                    <p class="person-desc">не очень шарю кто это</p>
+                </div>
+            </div>
+
+            <!-- 26. mercy_xdi -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/mercy_xdi?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://images.genius.com/3acf9e4d06248876817242193c7968f5.1000x1000x1.png" alt="mercy_xdi">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">mercy_xdi</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://www.youtube.com/watch?v=QHz2R870vtQ" target="_blank">пяторко милшер включить</a>
+                    </div>
+                    <p class="person-desc">Don’t stop the party: сегодня твой парень слит
+Я буду пьяный; слышь, вызови мне такси</p>
+                </div>
+            </div>
+
+            <!-- 27. mupp8 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/mupp8?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://slovnet.ru/wp-content/uploads/2024/03/461e5352c08237f72f5564622092936b.jpg" alt="mupp8">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">mupp8</h2>
+                        <div class="person-stars">★★★★★★<span class="grey-star">★</span></div>
+                    </div>
+                    <div class="person-role">
+                          <a href="https://i.pinimg.com/736x/8d/57/ae/8d57ae0e718ca17229b8d44b2c4245ee.jpg" target="_blank">гагага типа map но mup</a>
+                    </div>
+                    <p class="person-desc">вроде респектовый но так на пол шишечки, часто заходит, пишет чет но "вроде чето есть, но никаких осмысленных соо".</p>
+                </div>
+            </div>
+
+            <!-- 28. nelf1n -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/nelf1n?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/jCVGFKK0/image.png" alt="nelf1n">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">nelf1n</h2>
+                        <div class="person-stars" style="display: inline-flex; align-items: center;">
+                            <!-- Половинка активной / половинка неактивной -->
+                            <span style="position: relative; display: inline-block; color: #888888;">
+                                <span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span>★
+                            </span>
+                            <!-- 4 полностью неактивные звезды -->
+                            <span style="color: #888888;">☆☆☆☆</span>
+                        </div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/7GmT5gZ" target="_blank">Em... </a>
+                    </div>
+                    <p class="person-desc">купил випку за 500р</p>
+                </div>
+            </div>
+
+            <!-- 29. nightmares_52 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/nightmares_52?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/3x09JwV4/photo-2026-06-25-15-25-04.jpg" alt="nightmares_52">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">nightmares_52</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://www.youtube.com/watch?v=xJtYlm7XNzs" target="_blank">МНЕ ТАК СУКА СТРАШНО</a>
+                    </div>
+                    <p class="person-desc">52,42,67,89,141</p>
+                </div>
+            </div>
+
+            <!-- 30. nubchann -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/nubchann?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/ZqPFrH97/image.png" alt="nubchann">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">nubchann</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                         <a href="https://eblo.id/K8MwvXB" target="_blank">МЕРЧ.ПОЛУЧИТ.БЕСПЛАТН.</a>
+                    </div>
+                    <p class="person-desc">Хуевый актив думаю анвип</p>
+                </div>
+            </div>
+
+            <!-- 31. nyamuras -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/nyamuras?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/6pvDxkSZ/photo-2026-06-25-03-35-02.jpg" alt="nyamuras">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">nyamuras</h2>
+                        <div class="person-stars" style="filter: none !important; text-shadow: none !important;">🎮🎮🎮</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/XMOcsZq" target="_blank">спиздить игру</a>
+                    </div>
+                    <p class="person-desc">Хороший чаттерс и вроде даже есть какие-то посещения стримов, но немного смущает актив. Вся модерация за анвип, но решать тебе.</p>
+                </div>
+            </div>
+
+            <!-- 32. odpfodfpo -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/odpfodfpo?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/gkWxFpnY/image.png" alt="odpfodfpo">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">odpfodfpo</h2>
+                        <div class="person-stars" style="display: inline-flex; align-items: center;">
+                            <!-- 3 золотые звезды -->
+                            <span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★</span>
+                            <!-- Половинка активной / половинка неактивной -->
+                            <span style="position: relative; display: inline-block; color: #888888;">
+                                <span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span>★
+                            </span>
+                            <!-- 1 полностью неактивная звезда -->
+                            <span style="color: #888888;">☆</span>
+                        </div>
+                    </div>
+                    <div class="person-role">
+                         <a href="https://eblo.id/NBJXr2t" target="_blank"><- неактуальность</a>
+                    </div>
+                    <p class="person-desc">ну чета чета</p>
+                </div>
+            </div>
+
+            <!-- 33. peroxoz -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/peroxoz?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/Y211mbFY/image.png" alt="peroxoz">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">peroxoz</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/VNQrKzR" target="_blank">ПОЗВАТЬ НА ШОУ</a>
+                    </div>
+                    <p class="person-desc">фото на паспорт</p>
+                </div>
+            </div>
+
+            <!-- 34. priyatnogopoleta -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/priyatnogopoleta?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/Jhv2tPk3/image.png" alt="priyatnogopoleta">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">priyatnogopoleta</h2>
+                        <div class="person-stars" style="filter: none; text-shadow: none;">✈️✈️✈️</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/MP994PF" target="_blank">страшные авиакатастрофы смотреть</a>
+                    </div>
+                    <p class="person-desc">Ответь</p>
+                </div>
+            </div>
+
+            <!-- 35. prosto_kenny -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/prosto_kenny?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/mrf9D9rN/images-(5).jpg" alt="prosto_kenny">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">prosto_kenny</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/3SOAWdi" target="_blank">купить новую камеру</a>
+                    </div>
+                    <p class="person-desc">просто кенни</p>
+                </div>
+            </div>
+
+            <!-- 36. renamid -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/renamid?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/2500gmmN/photo-2026-06-25-14-08-58.jpg" alt="renamid">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">renamid</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/RfxNsLx" target="_blank">хуачен</a>
+                    </div>
+                    <p class="person-desc">Милый ангелочек👅👅👅</p>
+                </div>
+            </div>
+
+            <!-- 37. seraffiiim -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/seraffiiim?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/vmZJ40Z6/image-2026-06-25-14-14-52.png" alt="seraffiiim">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">seraffiiim</h2>
+                        <div class="person-stars">
+                            <span style="color: #888888;">☆☆☆☆☆</span>
+                        </div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/bixdOQC" target="_blank">привет</a>
+                    </div>
+                    <p class="person-desc">Не была на стримах с декабря, казнить</p>
+                </div>
+            </div>
+
+            <!-- 38. sereja_gl1n -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/sereja_gl1n?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/h4ZfvY4L/photo-2026-06-25-12-41-55.jpg" alt="sereja_gl1n">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">sereja_gl1n</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/ApycC1I" target="_blank"><- лжедмитрий</a>
+                    </div>
+                    <p class="person-desc">Хоглин</p>
+                </div>
+            </div>
+
+            <!-- 39. sofkarare -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/sofkarare?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/RFwZMwQw/photo-2026-06-25-18-09-39.jpg" alt="sofkarare">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">sofkarare</h2>
+                        <div class="person-stars"><span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★</span><span style="color: #888888;">☆☆</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/5z2UKRv" target="_blank">!нарезать</a>
+                    </div>
+                    <p class="person-desc">Чета нарезала, но уже месяц афк, посещения стримов +- норм как и active👍👍👍</p>
+                </div>
+            </div>
+
+            <!-- 40. sousluck -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/sousluck?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/CKJfNx0m/Maxresdefault-295354353.webp" alt="sousluck">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">sousluck</h2>
+                        <div class="person-stars" style="display: inline-flex; align-items: center;"><span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★</span><span style="position: relative; display: inline-block; color: #888888;"><span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span>★</span><span style="color: #888888;">☆</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/02WJYEM" target="_blank">пожалуйста давай ларпить</a>
+                    </div>
+                    <p class="person-desc">Нууу посещения стримов мб и окей но актив кнш такое дело</p>
+                </div>
+            </div>
+
+            <!-- 41. sshinymoonn -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/sshinymoonn?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/6qSjY4gb/photo-2026-06-25-15-27-31.jpg" alt="sshinymoonn">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">sshinymoonn</h2>
+                        <div class="person-stars">🌜🌜🌜</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/3RzxQmK" target="_blank">Семейный статус не указан</a>
+                    </div>
+                    <p class="person-desc">Альбом последний или крайний, бро, я не шайни</p>
+                </div>
+            </div>
+
+            <!-- 42. tatata682 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/tatata682?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/Pr6cBm4G/2026022610184041224-1.jpg" alt="tatata682">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">tatata682</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/K59pQyQ" target="_blank">закрой свое тупое хлебало в сторону чимина он бог и ты ему будешь поклоняться мразь и вообще ты думаешь ты самая умная так вот засунь себе свой ум в пизду а прости ни того ни другого жизнь не удалась и закрой хлебало ещё раз говорю про битиэс в особенности про чимина да и вообще про всех битиэс и вобще про весь кейпоп ты если ничего не понимаешь и тупая просто как пробка от вина даже пробка от вина умнее тебя то это твои проблемы а не мои до свидания</a>
+                    </div>
+                    <p class="person-desc">Арми</p>
+                </div>
+            </div>
+
+            <!-- 43. tzukatt -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/tzukatt?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/Gm6c10Qy/4547803653-w1280-h640-4547803653.webp" alt="tzukatt">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">tzukatt</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/o7k6L7O" target="_blank">Статус не указан</a>
+                    </div>
+                    <p class="person-desc">Цукаты — это фрукты, ягоды или овощи, сваренные в густом сахарном или сахаропаточном сиропе, а затем высушенные</p>
+                </div>
+            </div>
+
+            <!-- 44. unfeellxd -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/unfeellxd?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/GtbDJTTd/photo-2026-06-21-19-59-30.jpg" alt="unfeellxd">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">unfeellxd</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/zHuVEiF" target="_blank">ego</a>
+                    </div>
+                    <p class="person-desc">АНВИПНУТЬ АНВИПНУТЬ АНВИПНУТЬ АНВИПНУТЬ АНВИПНУТЬ</p>
+                </div>
+            </div>
+
+            <!-- 45. vio_bober -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/vio_bober?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/L4zKJY37/image.png" alt="vio_bober">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">vio_bober</h2>
+                        <div class="person-stars">★★★★★</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/St72y22" target="_blank">сидеть с бобром за столом</a>
+                    </div>
+                    <p class="person-desc">Бобёр (или бобр) — это крупный похихихи сука ебать мы оригинальные конечно</p>
+                </div>
+            </div>
+
+            <!-- 46. vvens_v1 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/vvens_v1?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgKC3bAJN6SRudNT1RFoloxu6h8behdnUeRfpFdjK-AlmQ5pVwl9SpQQw&s=10" alt="vvens_v1">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">vvens_v1</h2>
+                        <div class="person-stars"><span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★★</span><span style="color: #888888;">☆</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/wC0EXQi" target="_blank">валорант</a>
+                    </div>
+                    <p class="person-desc">удалить.</p>
+                </div>
+            </div>
+
+            <!-- 47. wendy_chan2352 -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/wendy_chan2352?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://thumbs.dreamstime.com/b/none-106828735.jpg" alt="wendy_chan2352">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">wendy_chan2352</h2>
+                        <div class="person-stars" style="display: inline-flex; align-items: center;"><span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★★</span><span style="position: relative; display: inline-block; color: #888888;"><span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span>★</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/LwQtNm0" target="_blank">Статус: ипонец</a>
+                    </div>
+                    <p class="person-desc">Посещения не оч актив заебись</p>
+                </div>
+            </div>
+
+            <!-- 48. xah0b -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/xah0b?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/02nNJHCx/image.png" alt="xah0b">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">xah0b</h2>
+                        <div class="person-stars">🐽🐽🐽🐽🐽</div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/5VDRr7g" target="_blank">НЯ КАВАЙ СВИНКА</a>
+                    </div>
+                    <p class="person-desc">НЕВЕРОЯТНО ВОНЯЕТ</p>
+                </div>
+            </div>
+
+            <!-- 49. yanke0o -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/yanke0o?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/zGT0jKVJ/photo-2026-06-25-15-15-27.jpg" alt="yanke0o">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name" style="color: #00bfff;">yanke0o</h2>
+                        <div class="person-stars" style="display: inline-flex; align-items: center;"><span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★</span><span style="position: relative; display: inline-block; color: #888888;"><span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span>★</span><span style="color: #888888;">☆☆</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/ouE6bMF" target="_blank">пол: мужской</a>
+                    </div>
+                    <p class="person-desc">Откинуть рофлы актив кнш пиздец. Оправдать можно датой фоллова и тем что она якобы отмечается но хз. Кароч месседжлог в помощь ты к тык</p>
+                </div>
+            </div>
+
+            <!-- 50. yukovka -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/yukovka?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://i.postimg.cc/90d3Rpr1/photo-2026-06-25-18-25-19.jpg" alt="yukovka">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">yukovka</h2>
+                        <div class="person-stars" style="display: inline-flex; align-items: center;"><span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span><span style="position: relative; display: inline-block; color: #888888;"><span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span>★</span><span style="color: #888888;">☆☆☆</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/jC6176F" target="_blank">ай хз крч</a>
+                    </div>
+                    <p class="person-desc">исчезала на 5 МЕСЯЦЕВ но 23-го числа вернулась как будто знала что скоро суд xd</p>
+                </div>
+            </div>
+
+            <!-- 51. zelyoniy_pled -->
+            <div class="person-card">
+                <a href="https://www.twitch.tv/popout/meowh0cki/viewercard/zelyoniy_pled?popout=" target="_blank" class="person-media-link">
+                    <div class="person-media">
+                        <img src="https://malva-dreams.com.ua/content/images/47/356x356l95nn0/91169374754012.jpg" alt="zelyoniy_pled">
+                    </div>
+                </a>
+                <div class="person-info">
+                    <div class="person-header">
+                        <h2 class="person-name">zelyoniy_pled</h2>
+                        <div class="person-stars" style="display: inline-flex; align-items: center;"><span style="color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★★★</span><span style="position: relative; display: inline-block; color: #888888;"><span style="position: absolute; top: 0; left: 0; width: 50%; overflow: hidden; color: #ffd700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);">★</span>★</span><span style="color: #888888;">☆</span></div>
+                    </div>
+                    <div class="person-role">
+                        <a href="https://eblo.id/4R7IHi2" target="_blank">зеленый</a>
+                    </div>
+                    <p class="person-desc">плед</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+<!-- Блок создателей в самом низу сайта -->
+<!-- Блок создателей в самом низу сайта -->
+<div class="credits-section" style="padding: 40px 20px; text-align: center; background: rgba(20, 20, 20, 0.6); margin-top: 50px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+    <h3 style="color: #fff; font-size: 24px; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px;">Над этим работали</h3>
+    
+    <div class="credits-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; max-width: 1200px; margin: 0 auto;">
+        
+        <!-- РОКСТАР -->
+        <div class="credit-card" style="width: 150px; text-align: center;">
+            <a href="https://t.me/rockstarnolie" target="_blank" style="text-decoration: none;">
+                <img src="https://i.postimg.cc/wjcMQJGp/aga-4x.png" alt="РОКСТАР" style="width: 90px; height: 90px; object-fit: contain; margin-bottom: 15px; border: none;">
+                <div style="color: #ffffff; font-size: 18px; font-weight: bold; margin-bottom: 5px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">РОКСТАР</div>
+            </a>
+        </div>
+
+        <!-- ВАНАШИ -->
+        <div class="credit-card" style="width: 150px; text-align: center;">
+            <a href="https://t.me/svinashi" target="_blank" style="text-decoration: none;">
+                <img src="https://i.postimg.cc/wjcMQJGp/aga-4x.png" alt="ВАНАШИ" style="width: 90px; height: 90px; object-fit: contain; margin-bottom: 15px; border: none;">
+                <div style="color: #0088FF; font-size: 18px; font-weight: bold; margin-bottom: 5px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">ВАНАШИ</div>
+            </a>
+        </div>
+
+        <!-- ЛАЧИ -->
+        <div class="credit-card" style="width: 150px; text-align: center;">
+            <a href="https://t.me/moonlight0613" target="_blank" style="text-decoration: none;">
+                <img src="https://i.postimg.cc/wjcMQJGp/aga-4x.png" alt="ЛАЧИ" style="width: 90px; height: 90px; object-fit: contain; margin-bottom: 15px; border: none;">
+                <div style="color: #FF6633; font-size: 18px; font-weight: bold; margin-bottom: 5px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">ЛАЧИ</div>
+            </a>
+        </div>
+
+        <!-- ДАША -->
+        <div class="credit-card" style="width: 150px; text-align: center;">
+            <a href="https://t.me/radichegovva" target="_blank" style="text-decoration: none;">
+                <img src="https://i.postimg.cc/wjcMQJGp/aga-4x.png" alt="ДАША" style="width: 90px; height: 90px; object-fit: contain; margin-bottom: 15px; border: none;">
+                <div style="color: #FF0055; font-size: 18px; font-weight: bold; margin-bottom: 5px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">ДАША</div>
+            </a>
+        </div>
+
+        <!-- КРАБОЕД -->
+        <div class="credit-card" style="width: 150px; text-align: center;">
+            <a href="https://t.me/craboedww" target="_blank" style="text-decoration: none;">
+                <img src="https://i.postimg.cc/wjcMQJGp/aga-4x.png" alt="КРАБО" style="width: 90px; height: 90px; object-fit: contain; margin-bottom: 15px; border: none;">
+                <div style="color: #99CC33; font-size: 18px; font-weight: bold; margin-bottom: 5px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;">КРАБОЕД</div>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+window.addEventListener('wheel', function(e) {
+    if (e.deltaY > 0) {
+        document.body.classList.add('scrolled');
+    } else if (window.scrollY === 0 && e.deltaY < 0) {
+        document.body.classList.remove('scrolled');
+    }
+});
+
+let touchStart = 0;
+window.addEventListener('touchstart', function(e) {
+    touchStart = e.touches[0].clientY;
+}, { passive: true });
+
+window.addEventListener('touchmove', function(e) {
+    let touchEnd = e.touches[0].clientY;
+    if (touchStart > touchEnd + 5) { 
+        document.body.classList.add('scrolled');
+    } else if (window.scrollY === 0 && touchEnd > touchStart + 5) {
+        document.body.classList.remove('scrolled');
+    }
+}, { passive: true });
+</script>
+</body>
+</html>
