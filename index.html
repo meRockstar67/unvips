@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Суд над Випами</title>
-    <link rel="icon" type="image/png" href="проба 1.png">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/ZRr8dWFp/proba-1.png">
     <style>
         /* Стили для всего сайта */
         * {
@@ -233,6 +233,38 @@
             line-height: 1.6;
         }
 
+        /* ЗАСТАВКА В КОНЦЕ САЙТА (появляется при доскролле до низа) */
+        .outro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #050505 0%, #1a0826 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .outro-screen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Эффект, когда долистали до конца и продолжили крутить вниз */
+        body.outro-visible .outro-screen {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
         /* Адаптив */
         @media (max-width: 768px) {
             .person-card {
@@ -256,6 +288,10 @@
     <div class="intro-screen">
         <div class="intro-logo">СУД НАД ВИПАМИ</div>
         <div class="intro-hint">meowh0cki МОДЕРАТОРС ПРОДАКШН</div>
+    </div>
+
+    <div class="outro-screen">
+        <img src="https://i.postimg.cc/rsN23pVy/eto-ze-pravda-renahoki.png" alt="это же правда">
     </div>
 
     <div class="main-content">
@@ -1345,11 +1381,25 @@
 </div>
 
 <script>
+function isAtBottom() {
+    // небольшой запас в 2px на погрешности округления
+    return window.innerHeight + window.scrollY >= document.body.scrollHeight - 2;
+}
+
 window.addEventListener('wheel', function(e) {
     if (e.deltaY > 0) {
         document.body.classList.add('scrolled');
-    } else if (window.scrollY === 0 && e.deltaY < 0) {
-        document.body.classList.remove('scrolled');
+        // если долистали до самого низа и продолжаем крутить вниз — показываем картинку
+        if (isAtBottom()) {
+            document.body.classList.add('outro-visible');
+        }
+    } else if (e.deltaY < 0) {
+        // если крутим вверх и картинка уже показана — прячем её обратно
+        if (document.body.classList.contains('outro-visible')) {
+            document.body.classList.remove('outro-visible');
+        } else if (window.scrollY === 0) {
+            document.body.classList.remove('scrolled');
+        }
     }
 });
 
@@ -1360,10 +1410,17 @@ window.addEventListener('touchstart', function(e) {
 
 window.addEventListener('touchmove', function(e) {
     let touchEnd = e.touches[0].clientY;
-    if (touchStart > touchEnd + 5) { 
+    if (touchStart > touchEnd + 5) {
         document.body.classList.add('scrolled');
-    } else if (window.scrollY === 0 && touchEnd > touchStart + 5) {
-        document.body.classList.remove('scrolled');
+        if (isAtBottom()) {
+            document.body.classList.add('outro-visible');
+        }
+    } else if (touchEnd > touchStart + 5) {
+        if (document.body.classList.contains('outro-visible')) {
+            document.body.classList.remove('outro-visible');
+        } else if (window.scrollY === 0) {
+            document.body.classList.remove('scrolled');
+        }
     }
 }, { passive: true });
 </script>
